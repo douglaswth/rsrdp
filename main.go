@@ -24,6 +24,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"gopkg.in/alecthomas/kingpin.v1"
 	_ "gopkg.in/rightscale/rsc.v1/rsapi"
@@ -31,18 +32,20 @@ import (
 )
 
 var (
-	config    = kingpin.Flag("config", "Set the config file path.").Short('c').Default(configPath).String()
-	account   = kingpin.Flag("account", "Set the RightScale account ID.").Short('a').Int()
-	host      = kingpin.Flag("host", "RightScale login endpoint (e.g. 'us-3.rightscale.com')").Short('h').String()
-	arguments = kingpin.Flag("argument", "Argument to the Remote Desktop command (specify multiple times for multiple arguments)").Short('A').Strings()
-	urls      = kingpin.Arg("url", "RightScale Server, ServerArray, or Instance URL").Strings()
+	app       = kingpin.New("rsrdp", "Launch Windows Remote Desktop for a RightScale Server, ServerArray, or Instance.")
+	config    = app.Flag("config", "Set the config file path.").Short('c').Default(configPath).String()
+	account   = app.Flag("account", "Set the RightScale account ID.").Short('a').Int()
+	host      = app.Flag("host", "RightScale login endpoint (e.g. 'us-3.rightscale.com')").Short('h').String()
+	arguments = app.Flag("argument", "Argument to the Remote Desktop command (specify multiple times for multiple arguments)").Short('A').Strings()
+	urls      = app.Arg("url", "RightScale Server, ServerArray, or Instance URL").Required().Strings()
 )
 
 func main() {
-	kingpin.Parse()
+	kingpin.MustParse(app.Parse(os.Args[1:]))
+
 	fmt.Println(*account)
 	fmt.Println(*config)
 	fmt.Println(*host)
-	fmt.Println(*arguments)
+	fmt.Println(*arguments, len(*arguments))
 	fmt.Println(*urls, len(*urls))
 }
