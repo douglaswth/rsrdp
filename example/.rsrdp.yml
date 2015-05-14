@@ -1,8 +1,11 @@
 login:
-  default: 12345
-  12345:
-    host: us-3.rightscale.com
-    refresh_token: abcdef1234567890abcdef1234567890abcdef12
-  67890:
-    host: us-4.rightscale.com
-    refresh_token: fedcba0987654321febcba0987654321fedcba09
+  default: production
+  environments:
+    production:
+      account: 12345
+      host: us-3.rightscale.com
+      refresh_token: abcdef1234567890abcdef1234567890abcdef12
+    staging:
+      account: 67890
+      host: us-4.rightscale.com
+      refresh_token: fedcba0987654321febcba0987654321fedcba09
