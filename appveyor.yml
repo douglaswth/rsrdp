@@ -1,0 +1,9 @@
+clone_folder: C:\projects\go\src\github.com\douglaswth\rsrdp
+environment:
+  GOPATH: C:\projects\go
+install:
+  - go get -t -v ./...
+build_script:
+  - go build -v ./...
+test_script:
+  - go test -v ./...
