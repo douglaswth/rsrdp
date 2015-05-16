@@ -24,54 +24,49 @@ package main
 
 import (
 	"fmt"
-	"log"
+	//"log"
 	"os"
 
 	"gopkg.in/alecthomas/kingpin.v1"
 	_ "gopkg.in/rightscale/rsc.v1/cm15"
 	//"gopkg.in/rightscale/rsc.v1/cm16"
 	//"gopkg.in/rightscale/rsc.v1/rsapi"
-	"github.com/rightscale/rsc/cm16"
-	"github.com/rightscale/rsc/rsapi"
-	"gopkg.in/spf13/viper.v0"
+	_ "github.com/rightscale/rsc/cm16"
+	_ "github.com/rightscale/rsc/rsapi"
 )
 
 var (
-	app                = kingpin.New("rsrdp", "Launch Windows Remote Desktop for a RightScale Server, ServerArray, or Instance.")
-	config             = app.Flag("config", "Set the config file path.").Short('c').Default(configPath).String()
-	account            = app.Flag("account", "Set the RightScale account ID.").Short('a').Int()
-	host               = app.Flag("host", "RightScale login endpoint (e.g. 'us-3.rightscale.com')").Short('h').String()
-	private            = app.Flag("private", "Connect to the Server, ServerArray, or Instance with the private interface instead of the public interface.").Short('p').Bool()
-	index              = app.Flag("index", "Connect using the indexed public/private interface of the Server, ServerArray, or Instance.").Short('i').Int()
-	arguments          = app.Flag("argument", "Argument to the Remote Desktop command (specify multiple times for multiple arguments)").Short('A').Strings()
-	urls               = app.Arg("url", "RightScale Server, ServerArray, or Instance URL").Required().Strings()
-	environments       map[string]Environment
-	defaultEnvironment string
+	app        = kingpin.New("rsrdp", "Launch Windows Remote Desktop for a RightScale Server, ServerArray, or Instance.")
+	configFile = app.Flag("config", "Set the config file path.").Short('c').Default(configPath).String()
+	account    = app.Flag("account", "Set the RightScale account ID.").Short('a').Int()
+	host       = app.Flag("host", "RightScale login endpoint (e.g. 'us-3.rightscale.com')").Short('h').String()
+	private    = app.Flag("private", "Connect to the Server, ServerArray, or Instance with the private interface instead of the public interface.").Short('p').Bool()
+	index      = app.Flag("index", "Connect using the indexed public/private interface of the Server, ServerArray, or Instance.").Short('i').Int()
+	arguments  = app.Flag("argument", "Argument to the Remote Desktop command (specify multiple times for multiple arguments)").Short('A').Strings()
+	urls       = app.Arg("url", "RightScale Server, ServerArray, or Instance URL").Required().Strings()
 )
 
 func main() {
 	kingpin.MustParse(app.Parse(os.Args[1:]))
-
-	viper.SetConfigFile(*config)
-	err := viper.ReadInConfig()
+	err := readConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading config file: %s\n", err)
 		os.Exit(1)
 	}
 
-	err = viper.MarshalKey("login.environments", &environments)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading config file: %s: %s\n", *config, err)
-		os.Exit(1)
-	}
-	defaultEnvironment = viper.GetString("login.default_environment")
+	/*
+		auth := rsapi.NewOAuthAuthenticator(defaultEnvironment.RefreshToken)
+		client16, err := cm16.New(defaultEnvironment.Account, defaultEnvironment.Host, auth, log.New(os.Stderr, "CM 1.6: ", log.LstdFlags), nil)
+		if err != nil {
+		}
+		instances, err := client16.InstanceLocator("/api/clouds/6/instances").Index(rsapi.ApiParams{})
+		if err != nil {
+		}
 
-	environment := environments[defaultEnvironment]
-	auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
-	client16, err := cm16.New(environment.Account, environment.Host, auth, log.New(os.Stderr, "CM 1.6: ", log.LstdFlags), nil)
-	instances, err := client16.InstanceLocator("/api/clouds/6/instances").Index(rsapi.ApiParams{})
-
-	for _, instance := range instances {
-		fmt.Println(instance.Id, instance.LegacyId, instance.ResourceUid)
-	}
+		for _, instance := range instances {
+			if instance.State != "inactive" {
+				fmt.Println(instance.Id, instance.LegacyId, instance.ResourceUid)
+			}
+		}
+	*/
 }
