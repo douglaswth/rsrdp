@@ -1,5 +1,5 @@
 login:
-  default: production
+  default_environment: production
   environments:
     production:
       account: 12345
