@@ -28,45 +28,40 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestNonexistentConfig(t *testing.T) {
+var (
+	nonexistentConfigFile               = "nonexistent/.rsrdp.yml"
+	badEnvironmentConfigFile            = "test/bad_environment.rsrdp.yml"
+	missingDefaultEnvironmentConfigFile = "test/missing_default_environment.rsrdp.yml"
+	exampleConfigFile                   = "example/.rsrdp.yml"
+)
+
+func TestReadConfigWithNonexistentFile(t *testing.T) {
 	RegisterTestingT(t)
 
-	nonexistentConfigFile := "nonexistent/.rsrdp.yml"
-	configFile = &nonexistentConfigFile
-
-	err := readConfig()
+	err := readConfig(nonexistentConfigFile, "")
 	Expect(err).To(HaveOccurred())
 }
 
-func TestReadBadEnvironmentConfig(t *testing.T) {
+func TestReadConfigWithBadEnvironment(t *testing.T) {
 	RegisterTestingT(t)
 
-	badEnvironmentConfigFile := "test/bad_environment.rsrdp.yml"
-	configFile = &badEnvironmentConfigFile
-
-	err := readConfig()
+	err := readConfig(badEnvironmentConfigFile, "")
 	Expect(err).To(HaveOccurred())
 }
 
-func TestReadMissingDefaultEnvironmentConfig(t *testing.T) {
+func TestReadConfigWithMissingDefaultEnvironment(t *testing.T) {
 	RegisterTestingT(t)
 
-	missingDefaultEnvironmentConfigFile := "test/missing_default_environment.rsrdp.yml"
-	configFile = &missingDefaultEnvironmentConfigFile
-
-	err := readConfig()
+	err := readConfig(missingDefaultEnvironmentConfigFile, "")
 	Expect(err).To(MatchError(missingDefaultEnvironmentConfigFile + ": could not find default environment: development"))
 }
 
-func TestReadExampleConfig(t *testing.T) {
+func TestReadConfigWithExample(t *testing.T) {
 	RegisterTestingT(t)
 
-	exampleConfigFile := "example/.rsrdp.yml"
-	configFile = &exampleConfigFile
-
-	err := readConfig()
+	err := readConfig(exampleConfigFile, "")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(environments).To(Equal(map[string]Environment{
+	Expect(config.environments).To(Equal(map[string]Environment{
 		"production": {
 			Account:      12345,
 			Host:         "us-3.rightscale.com",
@@ -78,9 +73,40 @@ func TestReadExampleConfig(t *testing.T) {
 			RefreshToken: "fedcba0987654321febcba0987654321fedcba09",
 		},
 	}))
-	Expect(defaultEnvironment).To(Equal(Environment{
+	Expect(config.environment).To(Equal(Environment{
 		Account:      12345,
 		Host:         "us-3.rightscale.com",
 		RefreshToken: "abcdef1234567890abcdef1234567890abcdef12",
 	}))
+}
+
+func TestReadConfigWithExampleAndEnvironment(t *testing.T) {
+	RegisterTestingT(t)
+
+	err := readConfig(exampleConfigFile, "staging")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(config.environments).To(Equal(map[string]Environment{
+		"production": {
+			Account:      12345,
+			Host:         "us-3.rightscale.com",
+			RefreshToken: "abcdef1234567890abcdef1234567890abcdef12",
+		},
+		"staging": {
+			Account:      67890,
+			Host:         "us-4.rightscale.com",
+			RefreshToken: "fedcba0987654321febcba0987654321fedcba09",
+		},
+	}))
+	Expect(config.environment).To(Equal(Environment{
+		Account:      67890,
+		Host:         "us-4.rightscale.com",
+		RefreshToken: "fedcba0987654321febcba0987654321fedcba09",
+	}))
+}
+
+func TestReadConfigWithExampleAndMissingEnvironment(t *testing.T) {
+	RegisterTestingT(t)
+
+	err := readConfig(exampleConfigFile, "development")
+	Expect(err).To(MatchError(exampleConfigFile + ": could not find environment: development"))
 }

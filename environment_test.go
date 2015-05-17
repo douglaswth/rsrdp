@@ -23,37 +23,39 @@
 package main
 
 import (
-	"log"
-	"os"
+	"testing"
 
-	"gopkg.in/rightscale/rsc.v1/cm15"
-	//"gopkg.in/rightscale/rsc.v1/cm16"
-	"github.com/rightscale/rsc/cm16"
-	"gopkg.in/rightscale/rsc.v1/rsapi"
+	. "github.com/onsi/gomega"
 )
 
-type Environment struct {
-	Account      int
-	Host         string
-	RefreshToken string `mapstructure:"refresh_token"`
-	client15     *cm15.Api
-	client16     *cm16.Api
+var testingEnvironment = Environment{
+	Account: 54321,
+	Host: "localhost",
+	RefreshToken: "def1234567890abcdef1234567890abcdef12345",
 }
 
-func (environment *Environment) Client15() (*cm15.Api, error) {
-	var err error
-	if environment.client15 == nil {
-		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
-		environment.client15, err = cm15.New(environment.Account, environment.Host, auth, log.New(os.Stdout, "[CM 1.5] ", log.LstdFlags), nil)
-	}
-	return environment.client15, err
+func TestEnvironmentClient15(t *testing.T) {
+	RegisterTestingT(t)
+
+	firstClient, err := testingEnvironment.Client15()
+	Expect(err).NotTo(HaveOccurred())
+	Expect(firstClient).NotTo(BeNil())
+	Expect(firstClient).To(Equal(testingEnvironment.client15))
+
+	secondClient, err := testingEnvironment.Client15()
+	Expect(err).NotTo(HaveOccurred())
+	Expect(secondClient).To(Equal(firstClient))
 }
 
-func (environment *Environment) Client16() (*cm16.Api, error) {
-	var err error
-	if environment.client16 == nil {
-		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
-		environment.client16, err = cm16.New(environment.Account, environment.Host, auth, log.New(os.Stdout, "[CM 1.6] ", log.LstdFlags), nil)
-	}
-	return environment.client16, err
+func TestEnvironmentClient16(t *testing.T) {
+	RegisterTestingT(t)
+
+	firstClient, err := testingEnvironment.Client16()
+	Expect(err).NotTo(HaveOccurred())
+	Expect(firstClient).NotTo(BeNil())
+	Expect(firstClient).To(Equal(testingEnvironment.client16))
+	
+	secondClient, err := testingEnvironment.Client16()
+	Expect(err).NotTo(HaveOccurred())
+	Expect(secondClient).To(Equal(firstClient))
 }

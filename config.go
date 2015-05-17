@@ -28,29 +28,37 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	config             = viper.New()
-	environments       map[string]Environment
-	defaultEnvironment Environment
-)
+var config struct {
+	*viper.Viper
+	environment  Environment
+	environments map[string]Environment
+}
 
-func readConfig() error {
-	config.SetConfigFile(*configFile)
+func readConfig(configFile, environment string) error {
+	config.Viper = viper.New()
+	config.SetConfigFile(configFile)
 	err := config.ReadInConfig()
 	if err != nil {
 		return err
 	}
 
-	err = config.MarshalKey("login.environments", &environments)
+	err = config.MarshalKey("login.environments", &config.environments)
 	if err != nil {
-		return fmt.Errorf("%s: %s", *configFile, err)
+		return fmt.Errorf("%s: %s", configFile, err)
 	}
 
-	defaultEnvironmentName := config.GetString("login.default_environment")
 	var ok bool
-	defaultEnvironment, ok = environments[defaultEnvironmentName]
-	if !ok {
-		return fmt.Errorf("%s: could not find default environment: %s", *configFile, defaultEnvironmentName)
+	if environment == "" {
+		defaultEnvironment := config.GetString("login.default_environment")
+		config.environment, ok = config.environments[defaultEnvironment]
+		if !ok {
+			return fmt.Errorf("%s: could not find default environment: %s", configFile, defaultEnvironment)
+		}
+	} else {
+		config.environment, ok = config.environments[environment]
+		if !ok {
+			return fmt.Errorf("%s: could not find environment: %s", configFile, environment)
+		}
 	}
 
 	return nil
