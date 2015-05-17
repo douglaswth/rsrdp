@@ -29,8 +29,8 @@ import (
 )
 
 var testingEnvironment = Environment{
-	Account: 54321,
-	Host: "localhost",
+	Account:      54321,
+	Host:         "localhost",
 	RefreshToken: "def1234567890abcdef1234567890abcdef12345",
 }
 
@@ -54,7 +54,7 @@ func TestEnvironmentClient16(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(firstClient).NotTo(BeNil())
 	Expect(firstClient).To(Equal(testingEnvironment.client16))
-	
+
 	secondClient, err := testingEnvironment.Client16()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(secondClient).To(Equal(firstClient))
