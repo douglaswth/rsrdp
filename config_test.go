@@ -61,7 +61,7 @@ func TestReadConfigWithExample(t *testing.T) {
 
 	err := readConfig(exampleConfigFile, "")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(config.environments).To(Equal(map[string]Environment{
+	Expect(config.environments).To(Equal(map[string]*Environment{
 		"production": {
 			Account:      12345,
 			Host:         "us-3.rightscale.com",
@@ -73,7 +73,7 @@ func TestReadConfigWithExample(t *testing.T) {
 			RefreshToken: "fedcba0987654321febcba0987654321fedcba09",
 		},
 	}))
-	Expect(config.environment).To(Equal(Environment{
+	Expect(config.environment).To(Equal(&Environment{
 		Account:      12345,
 		Host:         "us-3.rightscale.com",
 		RefreshToken: "abcdef1234567890abcdef1234567890abcdef12",
@@ -85,7 +85,7 @@ func TestReadConfigWithExampleAndEnvironment(t *testing.T) {
 
 	err := readConfig(exampleConfigFile, "staging")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(config.environments).To(Equal(map[string]Environment{
+	Expect(config.environments).To(Equal(map[string]*Environment{
 		"production": {
 			Account:      12345,
 			Host:         "us-3.rightscale.com",
@@ -97,7 +97,7 @@ func TestReadConfigWithExampleAndEnvironment(t *testing.T) {
 			RefreshToken: "fedcba0987654321febcba0987654321fedcba09",
 		},
 	}))
-	Expect(config.environment).To(Equal(Environment{
+	Expect(config.environment).To(Equal(&Environment{
 		Account:      67890,
 		Host:         "us-4.rightscale.com",
 		RefreshToken: "fedcba0987654321febcba0987654321fedcba09",

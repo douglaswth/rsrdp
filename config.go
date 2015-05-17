@@ -30,8 +30,8 @@ import (
 
 var config struct {
 	*viper.Viper
-	environment  Environment
-	environments map[string]Environment
+	environment  *Environment
+	environments map[string]*Environment
 }
 
 func readConfig(configFile, environment string) error {

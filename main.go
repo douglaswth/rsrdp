@@ -25,6 +25,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/alecthomas/kingpin.v1"
 	//"github.com/rightscale/rsc/rsapi"
@@ -39,6 +40,7 @@ var (
 	private     = app.Flag("private", "Connect to the Server, ServerArray, or Instance with the private interface instead of the public interface.").Short('p').Bool()
 	index       = app.Flag("index", "Connect using the indexed public/private interface of the Server, ServerArray, or Instance.").Short('i').Int()
 	arguments   = app.Flag("argument", "Argument to the Remote Desktop command (specify multiple times for multiple arguments)").Short('A').Strings()
+	prompt      = app.Flag("prompt", "Prompt for a username and password when launching Windows Remote Desktop rather than using the initial Adminstrator password from RightScale.").Short('P').Bool()
 	urls        = app.Arg("url", "RightScale Server, ServerArray, or Instance URL").Required().Strings()
 )
 
@@ -46,9 +48,11 @@ func main() {
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 	err := readConfig(*configFile, *environment)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading config file: %s\n", err)
+		fmt.Fprintf(os.Stderr, "%s: Error reading config file: %s\n", filepath.Base(os.Args[0]), err)
 		os.Exit(1)
 	}
+
+	fmt.Println(urlsToInstances(*urls, *prompt))
 
 	/*
 		client16, err := config.environment.Client16()

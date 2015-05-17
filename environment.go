@@ -23,6 +23,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -41,19 +42,25 @@ type Environment struct {
 }
 
 func (environment *Environment) Client15() (*cm15.Api, error) {
-	var err error
 	if environment.client15 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
+		var err error
 		environment.client15, err = cm15.New(environment.Account, environment.Host, auth, log.New(os.Stdout, "[CM 1.5] ", log.LstdFlags), nil)
+		if err != nil {
+			return nil, fmt.Errorf("Error initializing RightScale API 1.5 client: %s", err)
+		}
 	}
-	return environment.client15, err
+	return environment.client15, nil
 }
 
 func (environment *Environment) Client16() (*cm16.Api, error) {
-	var err error
 	if environment.client16 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
+		var err error
 		environment.client16, err = cm16.New(environment.Account, environment.Host, auth, log.New(os.Stdout, "[CM 1.6] ", log.LstdFlags), nil)
+		if err != nil {
+			return nil, fmt.Errorf("Error initializing RightScale API 1.6 client: %s", err)
+		}
 	}
-	return environment.client16, err
+	return environment.client16, nil
 }

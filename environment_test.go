@@ -23,6 +23,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -40,11 +41,11 @@ func TestEnvironmentClient15(t *testing.T) {
 	firstClient, err := testingEnvironment.Client15()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(firstClient).NotTo(BeNil())
-	Expect(firstClient).To(Equal(testingEnvironment.client15))
+	Expect(fmt.Sprintln(firstClient)).To(Equal(fmt.Sprintln(testingEnvironment.client15)))
 
 	secondClient, err := testingEnvironment.Client15()
 	Expect(err).NotTo(HaveOccurred())
-	Expect(secondClient).To(Equal(firstClient))
+	Expect(fmt.Sprintln(secondClient)).To(Equal(fmt.Sprintln(firstClient)))
 }
 
 func TestEnvironmentClient16(t *testing.T) {
@@ -53,9 +54,9 @@ func TestEnvironmentClient16(t *testing.T) {
 	firstClient, err := testingEnvironment.Client16()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(firstClient).NotTo(BeNil())
-	Expect(firstClient).To(Equal(testingEnvironment.client16))
+	Expect(fmt.Sprintln(firstClient)).To(Equal(fmt.Sprintln(testingEnvironment.client16)))
 
 	secondClient, err := testingEnvironment.Client16()
 	Expect(err).NotTo(HaveOccurred())
-	Expect(secondClient).To(Equal(firstClient))
+	Expect(fmt.Sprintln(secondClient)).To(Equal(fmt.Sprintln(firstClient)))
 }
