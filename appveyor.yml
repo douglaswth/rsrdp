@@ -1,11 +1,14 @@
-clone_folder: C:\projects\go\src\github.com\douglaswth\rsrdp
+cache:
+  - C:\projects\go
 environment:
   GOPATH: C:\projects\go
 install:
-  - go get -t -v ./...
+  - rmdir /s /q C:\projects\go\src\github.com\douglaswth\rsrdp
+  - xcopy . C:\projects\go\src\github.com\douglaswth\rsrdp /i
+  - cd C:\projects\go\src\github.com\douglaswth\rsrdp & go get -t -v ./...
 build_script:
-  - go build -v ./...
+  - cd C:\projects\go\src\github.com\douglaswth\rsrdp & go build -v ./...
 test_script:
-  - go test -v -cover ./...
+  - cd C:\projects\go\src\github.com\douglaswth\rsrdp & go test -v -cover ./...
 artifacts:
-  - path: rsrdp.exe
+  - path: C:\projects\go\src\github.com\douglaswth\rsrdp\rsrdp.exe
