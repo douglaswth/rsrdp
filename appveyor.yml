@@ -3,12 +3,14 @@ cache:
 environment:
   GOPATH: C:\projects\go
 install:
-  - rmdir /s /q C:\projects\go\src\github.com\douglaswth\rsrdp
+  - if exist C:\projects\go\src\github.com\douglaswth\rsrdp (rmdir /s /q C:\projects\go\src\github.com\douglaswth\rsrdp)
   - xcopy . C:\projects\go\src\github.com\douglaswth\rsrdp /i
   - cd C:\projects\go\src\github.com\douglaswth\rsrdp & go get -t -v ./...
+after_build:
+  - copy C:\projects\go\src\github.com\douglaswth\rsrdp\rsrdp.exe .
 build_script:
   - cd C:\projects\go\src\github.com\douglaswth\rsrdp & go build -v ./...
 test_script:
   - cd C:\projects\go\src\github.com\douglaswth\rsrdp & go test -v -cover ./...
 artifacts:
-  - path: C:\projects\go\src\github.com\douglaswth\rsrdp\rsrdp.exe
+  - path: rsrdp.exe
