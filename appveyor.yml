@@ -4,7 +4,8 @@ environment:
   GOPATH: C:\projects\go
 install:
   - if exist C:\projects\go\src\github.com\douglaswth\rsrdp (rmdir /s /q C:\projects\go\src\github.com\douglaswth\rsrdp)
-  - xcopy . C:\projects\go\src\github.com\douglaswth\rsrdp /i
+  - xcopy . C:\projects\go\src\github.com\douglaswth\rsrdp /s /e /i
+  - cd C:\projects\go\src\github.com\douglaswth\rsrdp
   - go get -t -v ./...
 build_script:
   - go build -v ./...
