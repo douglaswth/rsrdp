@@ -28,11 +28,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-var config struct {
+type Config struct {
 	*viper.Viper
 	environment  *Environment
 	environments map[string]*Environment
 }
+
+var config Config
 
 func readConfig(configFile, environment string) error {
 	config.Viper = viper.New()
@@ -62,4 +64,14 @@ func readConfig(configFile, environment string) error {
 	}
 
 	return nil
+}
+
+func (config *Config) getEnvironment(account int, host string) (*Environment, error) {
+	for _, environment := range config.environments {
+		if environment.Account == account && environment.Host == host {
+			return environment, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Error finding environment for account/host: %d %s", account, host)
 }

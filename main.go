@@ -28,7 +28,6 @@ import (
 	"path/filepath"
 
 	"gopkg.in/alecthomas/kingpin.v1"
-	//"github.com/rightscale/rsc/rsapi"
 )
 
 var (
@@ -53,19 +52,4 @@ func main() {
 	}
 
 	fmt.Println(urlsToInstances(*urls, *prompt))
-
-	/*
-		client16, err := config.environment.Client16()
-		if err != nil {
-		}
-		instances, err := client16.InstanceLocator("/api/clouds/6/instances").Index(rsapi.ApiParams{})
-		if err != nil {
-		}
-
-		for _, instance := range instances {
-			if instance.State != "inactive" {
-				fmt.Println(instance.Id, instance.LegacyId, instance.ResourceUid)
-			}
-		}
-	*/
 }

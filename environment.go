@@ -27,10 +27,12 @@ import (
 	"log"
 	"os"
 
-	"gopkg.in/rightscale/rsc.v1/cm15"
+	//"gopkg.in/rightscale/rsc.v1/cm15"
 	//"gopkg.in/rightscale/rsc.v1/cm16"
+	//"gopkg.in/rightscale/rsc.v1/rsapi"
+	"github.com/rightscale/rsc/cm15"
 	"github.com/rightscale/rsc/cm16"
-	"gopkg.in/rightscale/rsc.v1/rsapi"
+	"github.com/rightscale/rsc/rsapi"
 )
 
 type Environment struct {

@@ -26,18 +26,21 @@ import (
 	"fmt"
 	neturl "net/url"
 	"regexp"
+	"strconv"
 
-	"gopkg.in/rightscale/rsc.v1/cm15"
-	"gopkg.in/rightscale/rsc.v1/rsapi"
+	//"gopkg.in/rightscale/rsc.v1/cm15"
+	//"gopkg.in/rightscale/rsc.v1/rsapi"
+	"github.com/rightscale/rsc/cm15"
+	"github.com/rightscale/rsc/rsapi"
 )
 
 var (
-	instanceHref    = regexp.MustCompile("^/api/clouds/[^/]+/instances/[^/]+$")
-	serverHref      = regexp.MustCompile("^/api/(?:deployments/[^/]+/)?servers/[^/]+$")
-	serverArrayHref = regexp.MustCompile("^/api/(?:deployments/[^/]+/)?server_arrays/[^/]+$")
-	instancePage    = regexp.MustCompile("^/acct/([^/]+)/clouds/([^/]+)/instances/([^/]+)$")
-	serverPage      = regexp.MustCompile("^/acct/([^/]+)/servers/([^/]+)$")
-	serverArrayPage = regexp.MustCompile("^/acct/([^/]+)/server_arrays/([^/]+)$")
+	instanceHref    = regexp.MustCompile("^/api/clouds/(\\d+)/instances/[^/]+$")
+	serverHref      = regexp.MustCompile("^/api/(?:deployments/\\d+/)?servers/\\d+$")
+	serverArrayHref = regexp.MustCompile("^/api/(?:deployments/\\d+/)?server_arrays/\\d+$")
+	instancePage    = regexp.MustCompile("^/acct/(\\d+)/clouds/(\\d+)/instances/(\\d+)$")
+	serverPage      = regexp.MustCompile("^/acct/(\\d+)/servers/(\\d+)$")
+	serverArrayPage = regexp.MustCompile("^/acct/(\\d+)/server_arrays/(\\d+)$")
 )
 
 func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
@@ -63,16 +66,33 @@ func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
 			}
 			instances = append(instances, instance)
 		case serverArrayHref.MatchString(parsedUrl.Path):
+			arrayInstances, err := urlGetInstancesFromServerArrayHref(parsedUrl.Path, config.environment, prompt)
+			if err != nil {
+				return nil, err
+			}
+			for _, instance := range arrayInstances {
+				instances = append(instances, instance)
+			}
 		case instancePage.MatchString(parsedUrl.Path):
+			instance, err := urlGetInstanceFromInstancePage(parsedUrl, prompt)
+			if err != nil {
+				return nil, err
+			}
+			instances = append(instances, instance)
 		case serverPage.MatchString(parsedUrl.Path):
-			/*
-				fmt.Println(parsedUrl.Host, parsedUrl.Path, parsedUrl.RawQuery)
-
-				query, err := neturl.ParseQuery(parsedUrl.RawQuery)
-				instanceId := query.Get("instance_id")
-				fmt.Println(query, err, instanceId)
-			*/
+			instance, err := urlGetInstanceFromServerPage(parsedUrl, prompt)
+			if err != nil {
+				return nil, err
+			}
+			instances = append(instances, instance)
 		case serverArrayPage.MatchString(parsedUrl.Path):
+			arrayInstances, err := urlGetInstancesFromServerArrayPage(parsedUrl, prompt)
+			if err != nil {
+				return nil, err
+			}
+			for _, instance := range arrayInstances {
+				instances = append(instances, instance)
+			}
 		default:
 			return nil, fmt.Errorf("Error parsing URL: %s: unsupported URL format", url)
 		}
@@ -124,4 +144,130 @@ func urlGetInstanceFromServerHref(href string, environment *Environment, prompt 
 	}
 
 	return urlGetInstanceFromInstanceHref(currentInstanceHref, environment, prompt)
+}
+
+func urlGetInstancesFromServerArrayHref(href string, environment *Environment, prompt bool) ([]*cm15.Instance, error) {
+	client15, err := environment.Client15()
+	if err != nil {
+		return nil, err
+	}
+
+	array, err := client15.ServerArrayLocator(href).Show(rsapi.ApiParams{})
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving array: %s: %s", href, err)
+	}
+
+	var currentInstancesHref string
+	for _, link := range array.Links {
+		if link["rel"] == "current_instances" {
+			currentInstancesHref = link["href"]
+			break
+		}
+	}
+
+	params := rsapi.ApiParams{}
+	if !prompt {
+		params["view"] = "sensitive"
+	}
+	instances, err := client15.InstanceLocator(currentInstancesHref).Index(params)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving array instances: %s: %s", currentInstancesHref, err)
+	}
+
+	return instances, nil
+}
+
+func urlGetInstanceFromInstancePage(url *neturl.URL, prompt bool) (*cm15.Instance, error) {
+	submatches := instancePage.FindStringSubmatch(url.Path)
+	account, _ := strconv.ParseInt(submatches[1], 0, 0)
+	cloud, _ := strconv.ParseInt(submatches[2], 0, 0)
+	legacyId, _ := strconv.ParseInt(submatches[3], 0, 0)
+
+	environment, err := config.getEnvironment(int(account), url.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	return urlGetInstanceFromLegacyId(int(cloud), int(legacyId), environment, prompt)
+}
+
+func urlGetInstanceFromServerPage(url *neturl.URL, prompt bool) (*cm15.Instance, error) {
+	submatches := serverPage.FindStringSubmatch(url.Path)
+	account, _ := strconv.ParseInt(submatches[1], 0, 0)
+	href := "/api/servers/" + submatches[2]
+
+	environment, err := config.getEnvironment(int(account), url.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	instanceId := url.Query().Get("instance_id")
+	if instanceId != "" {
+		client15, err := environment.Client15()
+		if err != nil {
+			return nil, err
+		}
+
+		server, err := client15.ServerLocator(href).Show(rsapi.ApiParams{})
+		if err != nil {
+			return nil, fmt.Errorf("Error retrieving server: %s: %s", href, err)
+		}
+
+		var nextInstanceHref string
+		for _, link := range server.Links {
+			if link["rel"] == "next_instance" {
+				nextInstanceHref = link["href"]
+				break
+			}
+		}
+		if nextInstanceHref == "" {
+			return nil, fmt.Errorf("Error retrieving server: %s: server has no next instance", href)
+		}
+
+		submatches := instanceHref.FindStringSubmatch(nextInstanceHref)
+		cloud, _ := strconv.ParseInt(submatches[1], 0, 0)
+		legacyId, err := strconv.ParseInt(instanceId, 0, 0)
+		if err != nil {
+			return nil, err
+		}
+
+		return urlGetInstanceFromLegacyId(int(cloud), int(legacyId), environment, prompt)
+	}
+
+	return urlGetInstanceFromServerHref(href, environment, prompt)
+}
+
+func urlGetInstancesFromServerArrayPage(url *neturl.URL, prompt bool) ([]*cm15.Instance, error) {
+	submatches := serverArrayPage.FindStringSubmatch(url.Path)
+	account, _ := strconv.ParseInt(submatches[1], 0, 0)
+	href := "/api/server_arrays/" + submatches[2]
+
+	environment, err := config.getEnvironment(int(account), url.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	return urlGetInstancesFromServerArrayHref(href, environment, prompt)
+}
+
+func urlGetInstanceFromLegacyId(cloud, legacyId int, environment *Environment, prompt bool) (*cm15.Instance, error) {
+	client16, err := environment.Client16()
+	if err != nil {
+		return nil, err
+	}
+
+	instances, err := client16.InstanceLocator(fmt.Sprintf("/api/clouds/%d/instances", cloud)).Index(rsapi.ApiParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: remove print and uncomment loop when RSC and CM1.6 work correctly for collections
+	fmt.Println(instances)
+	/*for _, instance := range instances {
+		if instance.LegacyId == legacyId {
+			return urlGetInstanceFromInstanceHref(instance.Href, environment, prompt)
+		}
+	}*/
+
+	return nil, fmt.Errorf("Could not find instance with legacy ID: %d", legacyId)
 }
