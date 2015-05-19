@@ -98,8 +98,6 @@ func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
 		}
 	}
 
-	fmt.Println(len(instances), cap(instances))
-
 	return instances, nil
 }
 

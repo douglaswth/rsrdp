@@ -51,5 +51,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(urlsToInstances(*urls, *prompt))
+	instances, err := urlsToInstances(*urls, *prompt)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", filepath.Base(os.Args[0]), err)
+		os.Exit(1)
+	}
+
+	err = rdpLaunch(instances, *private, *index, *arguments)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", filepath.Base(os.Args[0]), err)
+		os.Exit(1)
+	}
 }
