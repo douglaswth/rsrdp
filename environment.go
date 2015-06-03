@@ -23,16 +23,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	//"gopkg.in/rightscale/rsc.v1/cm15"
-	//"gopkg.in/rightscale/rsc.v1/cm16"
-	//"gopkg.in/rightscale/rsc.v1/rsapi"
-	"github.com/rightscale/rsc/cm15"
-	"github.com/rightscale/rsc/cm16"
-	"github.com/rightscale/rsc/rsapi"
+	"gopkg.in/rightscale/rsc.v2/cm15"
+	"gopkg.in/rightscale/rsc.v2/cm16"
+	"gopkg.in/rightscale/rsc.v2/rsapi"
 )
 
 type Environment struct {
@@ -46,11 +42,7 @@ type Environment struct {
 func (environment *Environment) Client15() (*cm15.Api, error) {
 	if environment.client15 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
-		var err error
-		environment.client15, err = cm15.New(environment.Account, environment.Host, auth, log.New(os.Stdout, "[CM 1.5] ", log.LstdFlags), nil)
-		if err != nil {
-			return nil, fmt.Errorf("Error initializing RightScale API 1.5 client: %s", err)
-		}
+		environment.client15 = cm15.New(environment.Host, auth, log.New(os.Stdout, "[CM 1.5] ", log.LstdFlags), nil)
 	}
 	return environment.client15, nil
 }
@@ -58,11 +50,7 @@ func (environment *Environment) Client15() (*cm15.Api, error) {
 func (environment *Environment) Client16() (*cm16.Api, error) {
 	if environment.client16 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
-		var err error
-		environment.client16, err = cm16.New(environment.Account, environment.Host, auth, log.New(os.Stdout, "[CM 1.6] ", log.LstdFlags), nil)
-		if err != nil {
-			return nil, fmt.Errorf("Error initializing RightScale API 1.6 client: %s", err)
-		}
+		environment.client16 = cm16.New(environment.Host, auth, log.New(os.Stdout, "[CM 1.6] ", log.LstdFlags), nil)
 	}
 	return environment.client16, nil
 }

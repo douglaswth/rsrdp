@@ -25,8 +25,7 @@ package main
 import (
 	"fmt"
 
-	//"gopkg.in/rightscale/rsc.v1/cm15"
-	"github.com/rightscale/rsc/cm15"
+	"gopkg.in/rightscale/rsc.v2/cm15"
 )
 
 func rdpLaunch(instances []*cm15.Instance, private bool, index int, arguments []string) error {

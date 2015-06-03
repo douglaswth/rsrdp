@@ -28,10 +28,8 @@ import (
 	"regexp"
 	"strconv"
 
-	//"gopkg.in/rightscale/rsc.v1/cm15"
-	//"gopkg.in/rightscale/rsc.v1/rsapi"
-	"github.com/rightscale/rsc/cm15"
-	"github.com/rightscale/rsc/rsapi"
+	"gopkg.in/rightscale/rsc.v2/cm15"
+	"gopkg.in/rightscale/rsc.v2/rsapi"
 )
 
 var (

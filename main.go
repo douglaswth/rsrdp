@@ -27,7 +27,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/alecthomas/kingpin.v1"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -44,6 +44,7 @@ var (
 )
 
 func main() {
+	app.Writer(os.Stdout)
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 	err := readConfig(*configFile, *environment)
 	if err != nil {
