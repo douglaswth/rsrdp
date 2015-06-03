@@ -100,11 +100,7 @@ func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
 }
 
 func urlGetInstanceFromInstanceHref(href string, environment *Environment, prompt bool) (*cm15.Instance, error) {
-	client15, err := environment.Client15()
-	if err != nil {
-		return nil, err
-	}
-
+	client15 := environment.Client15()
 	params := rsapi.ApiParams{}
 	if !prompt {
 		params["view"] = "sensitive"
@@ -118,11 +114,7 @@ func urlGetInstanceFromInstanceHref(href string, environment *Environment, promp
 }
 
 func urlGetInstanceFromServerHref(href string, environment *Environment, prompt bool) (*cm15.Instance, error) {
-	client15, err := environment.Client15()
-	if err != nil {
-		return nil, err
-	}
-
+	client15 := environment.Client15()
 	server, err := client15.ServerLocator(href).Show(rsapi.ApiParams{})
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving server: %s: %s", href, err)
@@ -143,11 +135,7 @@ func urlGetInstanceFromServerHref(href string, environment *Environment, prompt 
 }
 
 func urlGetInstancesFromServerArrayHref(href string, environment *Environment, prompt bool) ([]*cm15.Instance, error) {
-	client15, err := environment.Client15()
-	if err != nil {
-		return nil, err
-	}
-
+	client15 := environment.Client15()
 	array, err := client15.ServerArrayLocator(href).Show(rsapi.ApiParams{})
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving array: %s: %s", href, err)
@@ -199,11 +187,7 @@ func urlGetInstanceFromServerPage(url *neturl.URL, prompt bool) (*cm15.Instance,
 
 	instanceId := url.Query().Get("instance_id")
 	if instanceId != "" {
-		client15, err := environment.Client15()
-		if err != nil {
-			return nil, err
-		}
-
+		client15 := environment.Client15()
 		server, err := client15.ServerLocator(href).Show(rsapi.ApiParams{})
 		if err != nil {
 			return nil, fmt.Errorf("Error retrieving server: %s: %s", href, err)
@@ -247,11 +231,7 @@ func urlGetInstancesFromServerArrayPage(url *neturl.URL, prompt bool) ([]*cm15.I
 }
 
 func urlGetInstanceFromLegacyId(cloud, legacyId int, environment *Environment, prompt bool) (*cm15.Instance, error) {
-	client16, err := environment.Client16()
-	if err != nil {
-		return nil, err
-	}
-
+	client16 := environment.Client16()
 	instances, err := client16.InstanceLocator(fmt.Sprintf("/api/clouds/%d/instances", cloud)).Index(rsapi.ApiParams{})
 	if err != nil {
 		return nil, err

@@ -38,25 +38,21 @@ var testingEnvironment = Environment{
 func TestEnvironmentClient15(t *testing.T) {
 	RegisterTestingT(t)
 
-	firstClient, err := testingEnvironment.Client15()
-	Expect(err).NotTo(HaveOccurred())
+	firstClient := testingEnvironment.Client15()
 	Expect(firstClient).NotTo(BeNil())
 	Expect(fmt.Sprintln(firstClient)).To(Equal(fmt.Sprintln(testingEnvironment.client15)))
 
-	secondClient, err := testingEnvironment.Client15()
-	Expect(err).NotTo(HaveOccurred())
+	secondClient := testingEnvironment.Client15()
 	Expect(fmt.Sprintln(secondClient)).To(Equal(fmt.Sprintln(firstClient)))
 }
 
 func TestEnvironmentClient16(t *testing.T) {
 	RegisterTestingT(t)
 
-	firstClient, err := testingEnvironment.Client16()
-	Expect(err).NotTo(HaveOccurred())
+	firstClient := testingEnvironment.Client16()
 	Expect(firstClient).NotTo(BeNil())
 	Expect(fmt.Sprintln(firstClient)).To(Equal(fmt.Sprintln(testingEnvironment.client16)))
 
-	secondClient, err := testingEnvironment.Client16()
-	Expect(err).NotTo(HaveOccurred())
+	secondClient := testingEnvironment.Client16()
 	Expect(fmt.Sprintln(secondClient)).To(Equal(fmt.Sprintln(firstClient)))
 }

@@ -39,18 +39,18 @@ type Environment struct {
 	client16     *cm16.Api
 }
 
-func (environment *Environment) Client15() (*cm15.Api, error) {
+func (environment *Environment) Client15() *cm15.Api {
 	if environment.client15 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
 		environment.client15 = cm15.New(environment.Host, auth, log.New(os.Stdout, "[CM 1.5] ", log.LstdFlags), nil)
 	}
-	return environment.client15, nil
+	return environment.client15
 }
 
-func (environment *Environment) Client16() (*cm16.Api, error) {
+func (environment *Environment) Client16() *cm16.Api {
 	if environment.client16 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
 		environment.client16 = cm16.New(environment.Host, auth, log.New(os.Stdout, "[CM 1.6] ", log.LstdFlags), nil)
 	}
-	return environment.client16, nil
+	return environment.client16
 }
