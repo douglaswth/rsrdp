@@ -39,6 +39,7 @@ var (
 	instancePage    = regexp.MustCompile("^/acct/(\\d+)/clouds/(\\d+)/instances/(\\d+)$")
 	serverPage      = regexp.MustCompile("^/acct/(\\d+)/servers/(\\d+)$")
 	serverArrayPage = regexp.MustCompile("^/acct/(\\d+)/server_arrays/(\\d+)$")
+	redirectPage    = regexp.MustCompile("^/acct/(\\d+)/redirect_to_ui_uri$")
 )
 
 func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
@@ -85,6 +86,14 @@ func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
 			instances = append(instances, instance)
 		case serverArrayPage.MatchString(parsedUrl.Path):
 			arrayInstances, err := urlGetInstancesFromServerArrayPage(parsedUrl, prompt)
+			if err != nil {
+				return nil, err
+			}
+			for _, instance := range arrayInstances {
+				instances = append(instances, instance)
+			}
+		case redirectPage.MatchString(parsedUrl.Path):
+			arrayInstances, err := urlGetInstancesFromRedirectPage(parsedUrl, prompt)
 			if err != nil {
 				return nil, err
 			}
@@ -228,6 +237,40 @@ func urlGetInstancesFromServerArrayPage(url *neturl.URL, prompt bool) ([]*cm15.I
 	}
 
 	return urlGetInstancesFromServerArrayHref(href, environment, prompt)
+}
+
+func urlGetInstancesFromRedirectPage(url *neturl.URL, prompt bool) ([]*cm15.Instance, error) {
+	submatches := redirectPage.FindStringSubmatch(url.Path)
+	account, _ := strconv.ParseInt(submatches[1], 0, 0)
+
+	environment, err := config.getEnvironment(int(account), url.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	query := url.Query()
+	resourceType := query.Get("resource_type")
+	resourceUri := query.Get("resource_uri")
+	instances := make([]*cm15.Instance, 1)
+
+	switch resourceType {
+	case "instance":
+		instances[0], err = urlGetInstanceFromInstanceHref(resourceUri, environment, prompt)
+		if err != nil {
+			return nil, err
+		}
+	case "server":
+		instances[0], err = urlGetInstanceFromServerHref(resourceUri, environment, prompt)
+		if err != nil {
+			return nil, err
+		}
+	case "server_array":
+		return urlGetInstancesFromServerArrayHref(resourceUri, environment, prompt)
+	default:
+		return nil, fmt.Errorf("Error parsing URL: %s: unsupported resource type: %s", url, resourceType)
+	}
+
+	return instances, nil
 }
 
 func urlGetInstanceFromLegacyId(cloud, legacyId int, environment *Environment, prompt bool) (*cm15.Instance, error) {
