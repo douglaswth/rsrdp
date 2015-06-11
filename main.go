@@ -24,6 +24,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -40,10 +41,14 @@ var (
 	index       = app.Flag("index", "Connect using the indexed public/private interface of the Server, ServerArray, or Instance.").Short('i').Int()
 	arguments   = app.Flag("argument", "Argument to the Remote Desktop command (specify multiple times for multiple arguments)").Short('A').Strings()
 	prompt      = app.Flag("prompt", "Prompt for a username and password when launching Windows Remote Desktop rather than using the initial Adminstrator password from RightScale.").Short('P').Bool()
+	username    = app.Flag("username", "The username to connect with").Default("Administrator").Short('u').String()
+	timeout     = app.Flag("timeout", "The amount to wait for the Server, ServerArray, or Instance to have an IP address and/or Administrator password").Short('t').Default("5m").Duration()
+	interval    = app.Flag("interval", "The amount of time between retries when waiting for the Server, ServerArray, or Instance to have an IP address and/or Administrator password").Short('I').Default("10s").Duration()
 	urls        = app.Arg("url", "RightScale Server, ServerArray, or Instance URL").Required().Strings()
 )
 
 func main() {
+	log.SetPrefix("[RS RDP] ")
 	app.Writer(os.Stdout)
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 	err := readConfig(*configFile, *environment)
@@ -58,9 +63,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = rdpLaunch(instances, *private, *index, *arguments)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s\n", filepath.Base(os.Args[0]), err)
+	errChans := make([]chan error, len(instances))
+	for errChanIndex, instance := range instances {
+		errChans[errChanIndex] = make(chan error)
+		go func(errChanIndex int, instance *Instance) {
+			errChans[errChanIndex] <- rdpLaunch(instance, *private, *index, *arguments, *prompt, *username, *timeout, *interval)
+		}(errChanIndex, instance)
+	}
+
+	errs := false
+	for _, errChan := range errChans {
+		err = <-errChan
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s: %s\n", filepath.Base(os.Args[0]), err)
+			errs = true
+		}
+	}
+	if errs {
 		os.Exit(1)
 	}
 }

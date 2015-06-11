@@ -28,7 +28,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"gopkg.in/rightscale/rsc.v2/cm15"
 	"gopkg.in/rightscale/rsc.v2/rsapi"
 )
 
@@ -42,8 +41,8 @@ var (
 	redirectPage    = regexp.MustCompile("^/acct/(\\d+)/redirect_to_ui_uri$")
 )
 
-func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
-	instances := make([]*cm15.Instance, 0, len(urls))
+func urlsToInstances(urls []string, prompt bool) ([]*Instance, error) {
+	instances := make([]*Instance, 0, len(urls))
 
 	for _, url := range urls {
 		parsedUrl, err := neturl.Parse(url)
@@ -108,7 +107,7 @@ func urlsToInstances(urls []string, prompt bool) ([]*cm15.Instance, error) {
 	return instances, nil
 }
 
-func urlGetInstanceFromInstanceHref(href string, environment *Environment, prompt bool) (*cm15.Instance, error) {
+func urlGetInstanceFromInstanceHref(href string, environment *Environment, prompt bool) (*Instance, error) {
 	client15 := environment.Client15()
 	params := rsapi.ApiParams{}
 	if !prompt {
@@ -119,10 +118,10 @@ func urlGetInstanceFromInstanceHref(href string, environment *Environment, promp
 		return nil, fmt.Errorf("Error retrieving instance: %s: %s", href, err)
 	}
 
-	return instance, nil
+	return &Instance{instance, environment}, nil
 }
 
-func urlGetInstanceFromServerHref(href string, environment *Environment, prompt bool) (*cm15.Instance, error) {
+func urlGetInstanceFromServerHref(href string, environment *Environment, prompt bool) (*Instance, error) {
 	client15 := environment.Client15()
 	server, err := client15.ServerLocator(href).Show(rsapi.ApiParams{})
 	if err != nil {
@@ -143,7 +142,7 @@ func urlGetInstanceFromServerHref(href string, environment *Environment, prompt 
 	return urlGetInstanceFromInstanceHref(currentInstanceHref, environment, prompt)
 }
 
-func urlGetInstancesFromServerArrayHref(href string, environment *Environment, prompt bool) ([]*cm15.Instance, error) {
+func urlGetInstancesFromServerArrayHref(href string, environment *Environment, prompt bool) ([]*Instance, error) {
 	client15 := environment.Client15()
 	array, err := client15.ServerArrayLocator(href).Show(rsapi.ApiParams{})
 	if err != nil {
@@ -162,15 +161,20 @@ func urlGetInstancesFromServerArrayHref(href string, environment *Environment, p
 	if !prompt {
 		params["view"] = "sensitive"
 	}
-	instances, err := client15.InstanceLocator(currentInstancesHref).Index(params)
+	currentInstances, err := client15.InstanceLocator(currentInstancesHref).Index(params)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving array instances: %s: %s", currentInstancesHref, err)
+	}
+
+	instances := make([]*Instance, len(currentInstances))
+	for index, instance := range currentInstances {
+		instances[index] = &Instance{instance, environment}
 	}
 
 	return instances, nil
 }
 
-func urlGetInstanceFromInstancePage(url *neturl.URL, prompt bool) (*cm15.Instance, error) {
+func urlGetInstanceFromInstancePage(url *neturl.URL, prompt bool) (*Instance, error) {
 	submatches := instancePage.FindStringSubmatch(url.Path)
 	account, _ := strconv.ParseInt(submatches[1], 0, 0)
 	cloud, _ := strconv.ParseInt(submatches[2], 0, 0)
@@ -184,7 +188,7 @@ func urlGetInstanceFromInstancePage(url *neturl.URL, prompt bool) (*cm15.Instanc
 	return urlGetInstanceFromLegacyId(int(cloud), int(legacyId), environment, prompt)
 }
 
-func urlGetInstanceFromServerPage(url *neturl.URL, prompt bool) (*cm15.Instance, error) {
+func urlGetInstanceFromServerPage(url *neturl.URL, prompt bool) (*Instance, error) {
 	submatches := serverPage.FindStringSubmatch(url.Path)
 	account, _ := strconv.ParseInt(submatches[1], 0, 0)
 	href := "/api/servers/" + submatches[2]
@@ -226,7 +230,7 @@ func urlGetInstanceFromServerPage(url *neturl.URL, prompt bool) (*cm15.Instance,
 	return urlGetInstanceFromServerHref(href, environment, prompt)
 }
 
-func urlGetInstancesFromServerArrayPage(url *neturl.URL, prompt bool) ([]*cm15.Instance, error) {
+func urlGetInstancesFromServerArrayPage(url *neturl.URL, prompt bool) ([]*Instance, error) {
 	submatches := serverArrayPage.FindStringSubmatch(url.Path)
 	account, _ := strconv.ParseInt(submatches[1], 0, 0)
 	href := "/api/server_arrays/" + submatches[2]
@@ -239,7 +243,7 @@ func urlGetInstancesFromServerArrayPage(url *neturl.URL, prompt bool) ([]*cm15.I
 	return urlGetInstancesFromServerArrayHref(href, environment, prompt)
 }
 
-func urlGetInstancesFromRedirectPage(url *neturl.URL, prompt bool) ([]*cm15.Instance, error) {
+func urlGetInstancesFromRedirectPage(url *neturl.URL, prompt bool) ([]*Instance, error) {
 	submatches := redirectPage.FindStringSubmatch(url.Path)
 	account, _ := strconv.ParseInt(submatches[1], 0, 0)
 
@@ -251,7 +255,7 @@ func urlGetInstancesFromRedirectPage(url *neturl.URL, prompt bool) ([]*cm15.Inst
 	query := url.Query()
 	resourceType := query.Get("resource_type")
 	resourceUri := query.Get("resource_uri")
-	instances := make([]*cm15.Instance, 1)
+	instances := make([]*Instance, 1)
 
 	switch resourceType {
 	case "instance":
@@ -273,7 +277,7 @@ func urlGetInstancesFromRedirectPage(url *neturl.URL, prompt bool) ([]*cm15.Inst
 	return instances, nil
 }
 
-func urlGetInstanceFromLegacyId(cloud, legacyId int, environment *Environment, prompt bool) (*cm15.Instance, error) {
+func urlGetInstanceFromLegacyId(cloud, legacyId int, environment *Environment, prompt bool) (*Instance, error) {
 	client16 := environment.Client16()
 	instances, err := client16.InstanceLocator(fmt.Sprintf("/api/clouds/%d/instances", cloud)).Index(rsapi.ApiParams{})
 	if err != nil {

@@ -23,4 +23,3 @@
 // +build !darwin !windows
 
 package main
-

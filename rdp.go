@@ -24,14 +24,36 @@ package main
 
 import (
 	"fmt"
-
-	"gopkg.in/rightscale/rsc.v2/cm15"
+	"io"
+	"os"
+	"time"
 )
 
-func rdpLaunch(instances []*cm15.Instance, private bool, index int, arguments []string) error {
-	for _, instance := range instances {
-		fmt.Println(instance.AdminPassword, instance.PrivateIpAddresses, instance.PublicIpAddresses)
+func rdpLaunch(instance *Instance, private bool, index int, arguments []string, prompt bool, username string, timeout, interval time.Duration) error {
+	err := instance.Wait(private, index, prompt, timeout, interval)
+	if err != nil {
+		return err
 	}
 
+	ipAddress, err := instance.IpAddress(private, index)
+	if err != nil {
+		return err
+	}
+
+	rdpWriteParameter(os.Stderr, "full address", ipAddress)
+	rdpWriteParameter(os.Stderr, "username", username)
+	fmt.Println(instance.AdminPassword)
+
 	return nil
+}
+
+func rdpWriteParameter(writer io.Writer, key string, value interface{}) (int, error) {
+	switch value.(type) {
+	case int:
+		return fmt.Fprintf(writer, "%s:i:%d\r\n", key, value)
+	case string:
+		return fmt.Fprintf(writer, "%s:s:%s\r\n", key, value)
+	default:
+		return fmt.Fprintf(writer, "%s:b:%s\r\n", key, value)
+	}
 }
