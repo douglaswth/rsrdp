@@ -20,6 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// +build !darwin !windows
-
 package main
+
+import (
+	"fmt"
+)
+
+func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
+	file, err := rdpCreateFile(instance, private, index, username)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(file, instance.AdminPassword)
+
+	return nil
+}

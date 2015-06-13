@@ -25,6 +25,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 )
@@ -35,16 +36,30 @@ func rdpLaunch(instance *Instance, private bool, index int, arguments []string, 
 		return err
 	}
 
+	return rdpLaunchNative(instance, private, index, arguments, prompt, username)
+}
+
+func rdpCreateFile(instance *Instance, private bool, index int, username string) (string, error) {
 	ipAddress, err := instance.IpAddress(private, index)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	rdpWriteParameter(os.Stderr, "full address", ipAddress)
-	rdpWriteParameter(os.Stderr, "username", username)
-	fmt.Println(instance.AdminPassword)
+	file, err := ioutil.TempFile(os.TempDir(), "rsrdp")
+	if err != nil {
+		return "", fmt.Errorf("Error creating RDP file: %s", err)
+	}
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
-	return nil
+	rdpWriteParameter(file, "full address", ipAddress)
+	rdpWriteParameter(file, "username", username)
+
+	return file.Name(), nil
 }
 
 func rdpWriteParameter(writer io.Writer, key string, value interface{}) (int, error) {
