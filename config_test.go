@@ -23,6 +23,7 @@
 package main
 
 import (
+	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -34,6 +35,14 @@ var (
 	missingDefaultEnvironmentConfigFile = "test/missing_default_environment.rsrdp.yml"
 	exampleConfigFile                   = "example/.rsrdp.yml"
 )
+
+func TestDefaultConfigFile(t *testing.T) {
+	RegisterTestingT(t)
+
+	configFile := defaultConfigFile()
+	Expect(filepath.Base(configFile)).To(Equal(".rsrdp.yml"))
+	Expect(filepath.IsAbs(configFile)).To(BeTrue())
+}
 
 func TestReadConfigWithNonexistentFile(t *testing.T) {
 	RegisterTestingT(t)

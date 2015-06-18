@@ -20,19 +20,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package win32
 
 import (
-	"path/filepath"
-
-	"github.com/douglaswth/rsrdp/win32"
+	"syscall"
+	"unsafe"
 )
 
-func defaultConfigFile() string {
-	roamingPath, err := win32.SHGetKnownFolderPath(&win32.FOLDERID_RoamingAppData, 0, 0)
-	if err != nil {
-		panic(err)
-	}
+var (
+	FOLDERID_RoamingAppData = syscall.GUID{0x3EB685DB, 0x65F9, 0x4CF6, [8]byte{0xA0, 0x3A, 0xE3, 0xEF, 0x65, 0x72, 0x9F, 0x3D}}
+)
 
-	return filepath.Join(roamingPath, "RSRDP", ".rsrdp.yml")
+var (
+	modShell32 = syscall.NewLazyDLL("Shell32.dll")
+	procSHGetKnownFolderPath = modShell32.NewProc("SHGetKnownFolderPath")
+)
+
+func SHGetKnownFolderPath(rfid *syscall.GUID, dwFlags uint32, hToken syscall.Handle) (string, error) {
+	var ppszPath *uint16
+	result, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(rfid)), uintptr(dwFlags), uintptr(hToken), uintptr(unsafe.Pointer(&ppszPath)))
+	if HRESULT(result) != S_OK {
+		return "", syscall.Errno(result)
+	}
+	defer CoTaskMemFree(uintptr(unsafe.Pointer(ppszPath)))
+
+	return syscall.UTF16ToString((*[1 << 16]uint16)(unsafe.Pointer(ppszPath))[:]), nil
 }

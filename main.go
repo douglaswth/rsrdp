@@ -33,7 +33,7 @@ import (
 
 var (
 	app         = kingpin.New("rsrdp", "Launch Windows Remote Desktop for a RightScale Server, ServerArray, or Instance.")
-	configFile  = app.Flag("config", "Set the config file path.").Short('c').Default(configPath).String()
+	configFile  = app.Flag("config", "Set the config file path.").Short('c').Default(defaultConfigFile()).String()
 	environment = app.Flag("environment", "Set the RightScale login environment.").Short('e').String()
 	account     = app.Flag("account", "Set the RightScale account ID.").Short('a').Int()
 	host        = app.Flag("host", "RightScale login endpoint (e.g. 'us-3.rightscale.com')").Short('h').String()

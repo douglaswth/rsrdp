@@ -20,19 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package win32
 
-import (
-	"path/filepath"
-
-	"github.com/douglaswth/rsrdp/win32"
+const (
+	S_OK         HRESULT = 0x00000000
+	E_FAIL       HRESULT = 0x80004005
+	E_INVALIDARG HRESULT = 0x80070057
 )
 
-func defaultConfigFile() string {
-	roamingPath, err := win32.SHGetKnownFolderPath(&win32.FOLDERID_RoamingAppData, 0, 0)
-	if err != nil {
-		panic(err)
-	}
-
-	return filepath.Join(roamingPath, "RSRDP", ".rsrdp.yml")
-}
+type HRESULT uint32

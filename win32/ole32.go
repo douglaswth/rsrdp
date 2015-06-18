@@ -20,19 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package win32
 
 import (
-	"path/filepath"
-
-	"github.com/douglaswth/rsrdp/win32"
+	"syscall"
 )
 
-func defaultConfigFile() string {
-	roamingPath, err := win32.SHGetKnownFolderPath(&win32.FOLDERID_RoamingAppData, 0, 0)
-	if err != nil {
-		panic(err)
-	}
+var (
+	modOle32          = syscall.NewLazyDLL("Ole32.dll")
+	procCoTaskMemFree = modOle32.NewProc("CoTaskMemFree")
+)
 
-	return filepath.Join(roamingPath, "RSRDP", ".rsrdp.yml")
+func CoTaskMemFree(pv uintptr) {
+	procCoTaskMemFree.Call(pv)
 }

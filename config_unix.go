@@ -25,8 +25,15 @@
 package main
 
 import (
-	"os"
+	"os/user"
 	"path/filepath"
 )
 
-var configPath = filepath.Join(os.Getenv("HOME"), ".rsrdp.yml")
+func defaultConfigFile() string {
+	currentUser, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Join(currentUser.HomeDir, ".rsrdp.yml")
+}
