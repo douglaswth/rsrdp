@@ -20,6 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// +build !darwin !windows
+// +build !darwin,!windows
 
 package main
+
+func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
+	return nil
+}
