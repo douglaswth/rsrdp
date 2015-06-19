@@ -21,3 +21,7 @@
 // SOFTWARE.
 
 package main
+
+func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
+	return nil
+}
