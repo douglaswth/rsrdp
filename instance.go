@@ -24,10 +24,10 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"gopkg.in/rightscale/rsc.v2/cm15"
+	"gopkg.in/inconshreveable/log15.v2"
+	"gopkg.in/rightscale/rsc.v3/cm15"
 )
 
 type Instance struct {
@@ -68,7 +68,7 @@ func (instance *Instance) Wait(private bool, index int, prompt bool, timeout, in
 				return
 			}
 
-			log.Printf("Waiting %s for instance %s to have IP address and/or Administrator password\n", interval, instance.Href())
+			log15.Info("waiting for IP address and/or Administrator password", "instance", instance.Href(), "interval", interval)
 			time.Sleep(interval)
 
 			newInstance, err := urlGetInstanceFromInstanceHref(instance.Href(), instance.Environment, prompt)

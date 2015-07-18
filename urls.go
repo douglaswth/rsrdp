@@ -28,7 +28,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"gopkg.in/rightscale/rsc.v2/rsapi"
+	"gopkg.in/rightscale/rsc.v3/rsapi"
 )
 
 var (

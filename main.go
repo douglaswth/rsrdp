@@ -24,11 +24,14 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/mattn/go-colorable"
+
 	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/inconshreveable/log15.v2"
+	"gopkg.in/rightscale/rsc.v3/log"
 )
 
 var (
@@ -48,7 +51,10 @@ var (
 )
 
 func main() {
-	log.SetPrefix("[RS RDP] ")
+	handler := log15.StreamHandler(colorable.NewColorableStdout(), log15.TerminalFormat())
+	log15.Root().SetHandler(handler)
+	log.Logger.SetHandler(handler)
+
 	app.Writer(os.Stdout)
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 	err := readConfig(*configFile, *environment)

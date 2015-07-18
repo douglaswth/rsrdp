@@ -23,12 +23,9 @@
 package main
 
 import (
-	"log"
-	"os"
-
-	"gopkg.in/rightscale/rsc.v2/cm15"
-	"gopkg.in/rightscale/rsc.v2/cm16"
-	"gopkg.in/rightscale/rsc.v2/rsapi"
+	"gopkg.in/rightscale/rsc.v3/cm15"
+	"gopkg.in/rightscale/rsc.v3/cm16"
+	"gopkg.in/rightscale/rsc.v3/rsapi"
 )
 
 type Environment struct {
@@ -41,16 +38,16 @@ type Environment struct {
 
 func (environment *Environment) Client15() *cm15.Api {
 	if environment.client15 == nil {
-		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
-		environment.client15 = cm15.New(environment.Host, auth, log.New(os.Stdout, "[CM 1.5] ", log.LstdFlags), nil)
+		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken, environment.Account)
+		environment.client15 = cm15.New(environment.Host, auth)
 	}
 	return environment.client15
 }
 
 func (environment *Environment) Client16() *cm16.Api {
 	if environment.client16 == nil {
-		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken)
-		environment.client16 = cm16.New(environment.Host, auth, log.New(os.Stdout, "[CM 1.6] ", log.LstdFlags), nil)
+		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken, environment.Account)
+		environment.client16 = cm16.New(environment.Host, auth)
 	}
 	return environment.client16
 }
