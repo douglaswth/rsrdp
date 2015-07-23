@@ -68,9 +68,7 @@ func urlsToInstances(urls []string, prompt bool) ([]*Instance, error) {
 			if err != nil {
 				return nil, err
 			}
-			for _, instance := range arrayInstances {
-				instances = append(instances, instance)
-			}
+			instances = append(instances, arrayInstances...)
 		case instancePage.MatchString(parsedUrl.Path):
 			instance, err := urlGetInstanceFromInstancePage(parsedUrl, prompt)
 			if err != nil {
@@ -88,17 +86,13 @@ func urlsToInstances(urls []string, prompt bool) ([]*Instance, error) {
 			if err != nil {
 				return nil, err
 			}
-			for _, instance := range arrayInstances {
-				instances = append(instances, instance)
-			}
+			instances = append(instances, arrayInstances...)
 		case redirectPage.MatchString(parsedUrl.Path):
 			arrayInstances, err := urlGetInstancesFromRedirectPage(parsedUrl, prompt)
 			if err != nil {
 				return nil, err
 			}
-			for _, instance := range arrayInstances {
-				instances = append(instances, instance)
-			}
+			instances = append(instances, arrayInstances...)
 		default:
 			return nil, fmt.Errorf("Error parsing URL: %s: unsupported URL format", url)
 		}
