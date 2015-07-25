@@ -34,7 +34,7 @@ var (
 )
 
 var (
-	modShell32 = syscall.NewLazyDLL("Shell32.dll")
+	modShell32               = syscall.NewLazyDLL("Shell32.dll")
 	procSHGetKnownFolderPath = modShell32.NewProc("SHGetKnownFolderPath")
 )
 

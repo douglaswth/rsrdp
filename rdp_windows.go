@@ -24,9 +24,29 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/douglaswth/rsrdp/win32"
 )
 
 func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
+	ipAddress, err := instance.IpAddress(private, index)
+	if err != nil {
+		return err
+	}
+
+	credential := win32.CREDENTIAL{
+		Type:           win32.CRED_TYPE_GENERIC,
+		TargetName:     ipAddress,
+		Comment:        "Temporary RSRDP credential",
+		CredentialBlob: instance.AdminPassword,
+		Persist:        win32.CRED_PERSIST_SESSION,
+		UserName:       username,
+	}
+	err = win32.CredWrite(&credential, 0)
+	if err != nil {
+		return err
+	}
+
 	file, err := rdpCreateFile(instance, private, index, username)
 	if err != nil {
 		return err

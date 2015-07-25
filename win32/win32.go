@@ -30,4 +30,10 @@ const (
 	E_INVALIDARG HRESULT = 0x80070057
 )
 
+type DWORD uint32
 type HRESULT uint32
+
+type FILETIME struct {
+	DwLowDateTime  DWORD
+	DwHighDateTime DWORD
+}
