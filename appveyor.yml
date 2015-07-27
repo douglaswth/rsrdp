@@ -7,6 +7,7 @@ install:
   - xcopy . C:\projects\go\src\github.com\douglaswth\rsrdp /s /e /i
   - cd C:\projects\go\src\github.com\douglaswth\rsrdp
   - go get -t -v ./...
+  - appveyor SetVariable -Name PATH -Value "%GOPATH%\bin;%PATH%;C:\Ruby21-x64\DevKit\mingw\bin"
 build_script:
   - go build -v ./...
 test_script:
