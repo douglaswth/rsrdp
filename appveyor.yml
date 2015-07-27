@@ -8,7 +8,8 @@ install:
   - cd C:\projects\go\src\github.com\douglaswth\rsrdp
   - appveyor SetVariable -Name PATH -Value "%GOPATH%\bin;%PATH%;C:\Ruby21-x64\DevKit\mingw\bin"
   - go env
-  - where gcc
+  - where gcc g++
+  - go tool cgo win32\advapi32.go
   - go get -t -v ./...
 build_script:
   - go build -v ./...
