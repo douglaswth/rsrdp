@@ -1,5 +1,5 @@
-cache:
-  - C:\projects\go
+#cache:
+#  - C:\projects\go
 environment:
   GOPATH: C:\projects\go
 install:
