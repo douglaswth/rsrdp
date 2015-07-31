@@ -1,5 +1,3 @@
-#cache:
-#  - C:\projects\go
 environment:
   GOPATH: C:\projects\go
 install:
@@ -9,7 +7,7 @@ install:
   - appveyor SetVariable -Name PATH -Value "%GOPATH%\bin;%PATH%;C:\Ruby21-x64\DevKit\mingw\bin"
   - go env
   - where gcc g++
-  - go get -t -v -u -f -d ./...
+  - go get -t -v -d ./...
 build_script:
   - go build -v ./...
 test_script:
