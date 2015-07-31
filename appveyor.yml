@@ -4,12 +4,12 @@ environment:
   GOPATH: C:\projects\go
 install:
   - if exist C:\projects\go\src\github.com\douglaswth\rsrdp (rmdir /s /q C:\projects\go\src\github.com\douglaswth\rsrdp)
-  - xcopy . C:\projects\go\src\github.com\douglaswth\rsrdp /s /e /i
+  - xcopy . C:\projects\go\src\github.com\douglaswth\rsrdp /s /e /i /h
   - cd C:\projects\go\src\github.com\douglaswth\rsrdp
   - appveyor SetVariable -Name PATH -Value "%GOPATH%\bin;%PATH%;C:\Ruby21-x64\DevKit\mingw\bin"
   - go env
   - where gcc g++
-  - go get -t -v -u -f ./...
+  - go get -t -v -u ./...
 build_script:
   - go build -v ./...
 test_script:
