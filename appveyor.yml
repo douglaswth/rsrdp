@@ -13,4 +13,5 @@ build_script:
 test_script:
   - go test -v -cover ./...
 artifacts:
-  - path: rsrdp.exe rsrdp-run/rsrdp-run.exe
+  - path: rsrdp.exe
+  - path: rsrdp-run\rsrdp-run.exe
