@@ -1,4 +1,3 @@
-// The MIT License (MIT)
 //
 // Copyright (c) 2015 Douglas Thrift
 //
@@ -26,62 +25,35 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
-	"github.com/douglaswth/rsrdp/win32"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
-	ipAddress, err := instance.IpAddress(private, index)
-	if err != nil {
-		return err
-	}
+var (
+	credential = kingpin.Flag("credential", "Temporary RSRDP credential").String()
+	executable = kingpin.Arg("executable", "Windows Remote Desktop client executable").Required().String()
+	arguments  = kingpin.Arg("arguments", "Arguments to Windows Remote Desktop client").Required().Strings()
+)
 
-	count := 3 + len(arguments)
-	if !prompt {
-		count += 2
-	}
-	args := make([]string, 0, count)
+func main() {
+	kingpin.Parse()
 
-	if !prompt {
-		credential := win32.CREDENTIAL{
-			Type:           win32.CRED_TYPE_GENERIC,
-			TargetName:     ipAddress,
-			Comment:        "Temporary RSRDP credential",
-			CredentialBlob: instance.AdminPassword,
-			Persist:        win32.CRED_PERSIST_SESSION,
-			UserName:       username,
-		}
-		err = win32.CredWrite(&credential, 0)
-		if err != nil {
-			return fmt.Errorf("Error storing credential: %s", err)
-		}
-		args = append(args, "--credential", ipAddress)
-	}
-
-	file, err := rdpCreateFile(instance, private, index, username)
-	if err != nil {
-		return err
-	}
-	args = append(args, "--", "mstsc", file)
-	args = append(args, arguments...)
-
-	executable, err := rdpFindRunExecutable()
-	if err != nil {
-		return err
-	}
-
-	command := exec.Command(executable, args...)
+	command := exec.Command(*executable, *arguments...)
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
 
-	err = command.Start()
+	err := command.Run()
 	if err != nil {
-		return err
-	}
-	err = command.Process.Release()
-	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "%s: Error running %s: %s", filepath.Base(os.Args[0]), *executable, err)
+		os.Exit(1)
 	}
 
-	return nil
+	if *credential != "" {
+		err = deleteCredential(*credential)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s: Error deleting credential: %s\n", filepath.Base(os.Args[0]), err)
+			os.Exit(1)
+		}
+	}
 }

@@ -27,7 +27,11 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"time"
+
+	"github.com/kardianos/osext"
 )
 
 func rdpLaunch(instance *Instance, private bool, index int, arguments []string, prompt bool, username string, timeout, interval time.Duration) error {
@@ -71,4 +75,30 @@ func rdpWriteParameter(writer io.Writer, key string, value interface{}) (int, er
 	default:
 		return fmt.Fprintf(writer, "%s:b:%s\r\n", key, value)
 	}
+}
+
+func rdpFindRunExecutable() (string, error) {
+	folder, err := osext.ExecutableFolder()
+	if err != nil {
+		return "", fmt.Errorf("Error finding rsrdp-run executable: %s", err)
+	}
+	executable, err := exec.LookPath(filepath.Join(folder, "rsrdp-run", "rsrdp-run"))
+	if err == nil {
+		return executable, nil
+	}
+
+	switch err := err.(type) {
+	case *exec.Error:
+		if !os.IsNotExist(err.Err) {
+			return "", fmt.Errorf("Error finding rsrdp-run executable: %s", err)
+		}
+	default:
+		return "", fmt.Errorf("Error finding rsrdp-run executable: %s", err)
+	}
+
+	executable, err = exec.LookPath("rsrdp-run")
+	if err != nil {
+		return "", fmt.Errorf("Error finding rsrdp-run executable: %s", err)
+	}
+	return executable, nil
 }

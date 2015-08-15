@@ -56,8 +56,9 @@ const (
 )
 
 var (
-	modAdvapi32    = syscall.NewLazyDLL("Advapi32.dll")
-	procCredWriteW = modAdvapi32.NewProc("CredWriteW")
+	modAdvapi32     = syscall.NewLazyDLL("Advapi32.dll")
+	procCredWriteW  = modAdvapi32.NewProc("CredWriteW")
+	procCredDeleteW = modAdvapi32.NewProc("CredDeleteW")
 )
 
 type CREDENTIAL struct {
@@ -79,24 +80,24 @@ type CREDENTIAL_ATTRIBUTE struct {
 	Value   []byte
 }
 
-func CredWrite(credential *CREDENTIAL, flags DWORD) error {
-	targetName, err := syscall.UTF16PtrFromString(credential.TargetName)
+func CredWrite(Credential *CREDENTIAL, Flags DWORD) error {
+	targetName, err := syscall.UTF16PtrFromString(Credential.TargetName)
 	if err != nil {
 		return err
 	}
 
-	comment, err := syscall.UTF16PtrFromString(credential.Comment)
+	comment, err := syscall.UTF16PtrFromString(Credential.Comment)
 	if err != nil {
 		return err
 	}
 
-	credentialBlob, err := syscall.UTF16PtrFromString(credential.CredentialBlob)
+	credentialBlob, err := syscall.UTF16PtrFromString(Credential.CredentialBlob)
 	if err != nil {
 		return err
 	}
 
-	attributes := make([]C.CREDENTIAL_ATTRIBUTEW, len(credential.Attributes))
-	for _, attribute := range credential.Attributes {
+	attributes := make([]C.CREDENTIAL_ATTRIBUTEW, len(Credential.Attributes))
+	for _, attribute := range Credential.Attributes {
 		keyword, err := syscall.UTF16PtrFromString(attribute.Keyword)
 		if err != nil {
 			return err
@@ -109,37 +110,50 @@ func CredWrite(credential *CREDENTIAL, flags DWORD) error {
 		})
 	}
 
-	targetAlias, err := syscall.UTF16PtrFromString(credential.TargetAlias)
+	targetAlias, err := syscall.UTF16PtrFromString(Credential.TargetAlias)
 	if err != nil {
 		return err
 	}
 
-	userName, err := syscall.UTF16PtrFromString(credential.UserName)
+	userName, err := syscall.UTF16PtrFromString(Credential.UserName)
 	if err != nil {
 		return err
 	}
 
-	credentialw := C.CREDENTIALW{
-		Flags:      C.DWORD(credential.Flags),
-		Type:       C.DWORD(credential.Type),
+	credential := C.CREDENTIALW{
+		Flags:      C.DWORD(Credential.Flags),
+		Type:       C.DWORD(Credential.Type),
 		TargetName: C.LPWSTR(unsafe.Pointer(targetName)),
 		Comment:    C.LPWSTR(unsafe.Pointer(comment)),
 		LastWritten: C.FILETIME{
-			dwLowDateTime:  C.DWORD(credential.LastWritten.DwLowDateTime),
-			dwHighDateTime: C.DWORD(credential.LastWritten.DwHighDateTime),
+			dwLowDateTime:  C.DWORD(Credential.LastWritten.DwLowDateTime),
+			dwHighDateTime: C.DWORD(Credential.LastWritten.DwHighDateTime),
 		},
-		CredentialBlobSize: C.DWORD(len(credential.CredentialBlob) * 2),
+		CredentialBlobSize: C.DWORD(len(Credential.CredentialBlob) * 2),
 		CredentialBlob:     C.LPBYTE(unsafe.Pointer(credentialBlob)),
-		Persist:            C.DWORD(credential.Persist),
+		Persist:            C.DWORD(Credential.Persist),
 		AttributeCount:     C.DWORD(len(attributes)),
 		TargetAlias:        C.LPWSTR(unsafe.Pointer(targetAlias)),
 		UserName:           C.LPWSTR(unsafe.Pointer(userName)),
 	}
 	if len(attributes) != 0 {
-		credentialw.Attributes = &attributes[0]
+		credential.Attributes = &attributes[0]
 	}
 
-	result, _, err := procCredWriteW.Call(uintptr(unsafe.Pointer(&credentialw)), uintptr(flags))
+	result, _, err := procCredWriteW.Call(uintptr(unsafe.Pointer(&credential)), uintptr(Flags))
+	if result == 0 {
+		return err
+	}
+	return nil
+}
+
+func CredDelete(TargetName string, Type, Flags DWORD) error {
+	targetName, err := syscall.UTF16PtrFromString(TargetName)
+	if err != nil {
+		return err
+	}
+
+	result, _, err := procCredDeleteW.Call(uintptr(unsafe.Pointer(targetName)), uintptr(Type), uintptr(Flags))
 	if result == 0 {
 		return err
 	}
