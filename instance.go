@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"gopkg.in/inconshreveable/log15.v2"
-	"gopkg.in/rightscale/rsc.v3/cm15"
+	"gopkg.in/rightscale/rsc.v4/cm15"
 )
 
 type Instance struct {

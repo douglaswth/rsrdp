@@ -23,20 +23,20 @@
 package main
 
 import (
-	"gopkg.in/rightscale/rsc.v3/cm15"
-	"gopkg.in/rightscale/rsc.v3/cm16"
-	"gopkg.in/rightscale/rsc.v3/rsapi"
+	"gopkg.in/rightscale/rsc.v4/cm15"
+	"gopkg.in/rightscale/rsc.v4/cm16"
+	"gopkg.in/rightscale/rsc.v4/rsapi"
 )
 
 type Environment struct {
 	Account      int
 	Host         string
 	RefreshToken string `mapstructure:"refresh_token"`
-	client15     *cm15.Api
-	client16     *cm16.Api
+	client15     *cm15.API
+	client16     *cm16.API
 }
 
-func (environment *Environment) Client15() *cm15.Api {
+func (environment *Environment) Client15() *cm15.API {
 	if environment.client15 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken, environment.Account)
 		environment.client15 = cm15.New(environment.Host, auth)
@@ -44,7 +44,7 @@ func (environment *Environment) Client15() *cm15.Api {
 	return environment.client15
 }
 
-func (environment *Environment) Client16() *cm16.Api {
+func (environment *Environment) Client16() *cm16.API {
 	if environment.client16 == nil {
 		auth := rsapi.NewOAuthAuthenticator(environment.RefreshToken, environment.Account)
 		environment.client16 = cm16.New(environment.Host, auth)

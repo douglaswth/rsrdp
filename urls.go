@@ -28,7 +28,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"gopkg.in/rightscale/rsc.v3/rsapi"
+	"gopkg.in/rightscale/rsc.v4/rsapi"
 )
 
 var (
@@ -103,7 +103,7 @@ func urlsToInstances(urls []string, prompt bool) ([]*Instance, error) {
 
 func urlGetInstanceFromInstanceHref(href string, environment *Environment, prompt bool) (*Instance, error) {
 	client15 := environment.Client15()
-	params := rsapi.ApiParams{}
+	params := rsapi.APIParams{}
 	if !prompt {
 		params["view"] = "sensitive"
 	}
@@ -117,7 +117,7 @@ func urlGetInstanceFromInstanceHref(href string, environment *Environment, promp
 
 func urlGetInstanceFromServerHref(href string, environment *Environment, prompt bool) (*Instance, error) {
 	client15 := environment.Client15()
-	server, err := client15.ServerLocator(href).Show(rsapi.ApiParams{})
+	server, err := client15.ServerLocator(href).Show(rsapi.APIParams{})
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving server: %s: %s", href, err)
 	}
@@ -138,7 +138,7 @@ func urlGetInstanceFromServerHref(href string, environment *Environment, prompt 
 
 func urlGetInstancesFromServerArrayHref(href string, environment *Environment, prompt bool) ([]*Instance, error) {
 	client15 := environment.Client15()
-	array, err := client15.ServerArrayLocator(href).Show(rsapi.ApiParams{})
+	array, err := client15.ServerArrayLocator(href).Show(rsapi.APIParams{})
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving array: %s: %s", href, err)
 	}
@@ -151,7 +151,7 @@ func urlGetInstancesFromServerArrayHref(href string, environment *Environment, p
 		}
 	}
 
-	params := rsapi.ApiParams{}
+	params := rsapi.APIParams{}
 	if !prompt {
 		params["view"] = "sensitive"
 	}
@@ -195,7 +195,7 @@ func urlGetInstanceFromServerPage(url *neturl.URL, prompt bool) (*Instance, erro
 	instanceId := url.Query().Get("instance_id")
 	if instanceId != "" {
 		client15 := environment.Client15()
-		server, err := client15.ServerLocator(href).Show(rsapi.ApiParams{})
+		server, err := client15.ServerLocator(href).Show(rsapi.APIParams{})
 		if err != nil {
 			return nil, fmt.Errorf("Error retrieving server: %s: %s", href, err)
 		}
@@ -273,7 +273,7 @@ func urlGetInstancesFromRedirectPage(url *neturl.URL, prompt bool) ([]*Instance,
 
 func urlGetInstanceFromLegacyId(cloud, legacyId int, environment *Environment, prompt bool) (*Instance, error) {
 	client16 := environment.Client16()
-	instances, err := client16.InstanceLocator(fmt.Sprintf("/api/clouds/%d/instances", cloud)).Index(rsapi.ApiParams{})
+	instances, err := client16.InstanceLocator(fmt.Sprintf("/api/clouds/%d/instances", cloud)).Index(rsapi.APIParams{})
 	if err != nil {
 		return nil, err
 	}

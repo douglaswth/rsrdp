@@ -31,7 +31,7 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/inconshreveable/log15.v2"
-	"gopkg.in/rightscale/rsc.v3/log"
+	"gopkg.in/rightscale/rsc.v4/log"
 )
 
 var (
