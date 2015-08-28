@@ -31,10 +31,16 @@ import (
 )
 
 var (
-	credential = kingpin.Flag("credential", "Temporary RSRDP credential").String()
+	credential = kingpin.Flag("credential", "Temporary RSRDP credential to delete when finished").String()
+	temporary  = kingpin.Flag("temporary", "Temporary RDP file to delete when finished").String()
 	executable = kingpin.Arg("executable", "Windows Remote Desktop client executable").Required().String()
 	arguments  = kingpin.Arg("arguments", "Arguments to Windows Remote Desktop client").Required().Strings()
 )
+
+type Cleanup struct {
+	Execute func() error
+	Message string
+}
 
 func main() {
 	kingpin.Parse()
@@ -43,17 +49,41 @@ func main() {
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
 
+	errs := false
 	err := command.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: Error running %s: %s", filepath.Base(os.Args[0]), *executable, err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "%s: Error running %s: %s\n", filepath.Base(os.Args[0]), *executable, err)
+		errs = true
 	}
 
+	cleanups := make([]Cleanup, 0, 2)
+	if *temporary != "" {
+		cleanups = append(cleanups, Cleanup{func() error {
+			return os.Remove(*temporary)
+		}, "Error deleting temporary file"})
+	}
 	if *credential != "" {
-		err = deleteCredential(*credential)
+		cleanups = append(cleanups, Cleanup{func() error {
+			return deleteCredential(*credential)
+		}, "Error deleting credential"})
+	}
+
+	errChans := make([]chan error, len(cleanups))
+	for index, cleanup := range cleanups {
+		errChans[index] = make(chan error)
+		go func(index int, cleanup Cleanup) {
+			errChans[index] <- cleanup.Execute()
+		}(index, cleanup)
+	}
+
+	for index, cleanup := range cleanups {
+		err = <-errChans[index]
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: Error deleting credential: %s\n", filepath.Base(os.Args[0]), err)
-			os.Exit(1)
+			fmt.Fprintf(os.Stderr, "%s: %s: %s\n", filepath.Base(os.Args[0]), cleanup.Message, err)
+			errs = true
 		}
+	}
+	if errs {
+		os.Exit(1)
 	}
 }

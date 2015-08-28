@@ -62,7 +62,7 @@ func rdpLaunchNative(instance *Instance, private bool, index int, arguments []st
 	if err != nil {
 		return err
 	}
-	args = append(args, "--", "mstsc", file)
+	args = append(args, "--temporary", file, "--", "mstsc", file)
 	args = append(args, arguments...)
 
 	executable, err := rdpFindRunExecutable()
