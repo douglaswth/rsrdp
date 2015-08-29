@@ -43,13 +43,18 @@ func rdpLaunch(instance *Instance, private bool, index int, arguments []string, 
 	return rdpLaunchNative(instance, private, index, arguments, prompt, username)
 }
 
-func rdpCreateFile(instance *Instance, private bool, index int, username string) (string, error) {
+func rdpCreateFile(instance *Instance, private bool, index int, username string, password bool) (string, error) {
 	ipAddress, err := instance.IpAddress(private, index)
 	if err != nil {
 		return "", err
 	}
 
-	file, err := ioutil.TempFile(os.TempDir(), "rsrdp")
+	dir, err := ioutil.TempDir("", "rsrdp")
+	if err != nil {
+		return "", fmt.Errorf("Error creating RDP directory: %s", err)
+	}
+
+	file, err := os.OpenFile(filepath.Join(dir, ipAddress+".rdp"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return "", fmt.Errorf("Error creating RDP file: %s", err)
 	}
@@ -60,8 +65,20 @@ func rdpCreateFile(instance *Instance, private bool, index int, username string)
 		}
 	}()
 
-	rdpWriteParameter(file, "full address", ipAddress)
-	rdpWriteParameter(file, "username", username)
+	_, err = rdpWriteParameter(file, "full address", ipAddress)
+	if err != nil {
+		return "", err
+	}
+	_, err = rdpWriteParameter(file, "username", username)
+	if err != nil {
+		return "", err
+	}
+	if password {
+		_, err = rdpWriteParameter(file, "password", instance.AdminPassword)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	return file.Name(), nil
 }

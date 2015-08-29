@@ -32,7 +32,7 @@ import (
 
 var (
 	credential = kingpin.Flag("credential", "Temporary RSRDP credential to delete when finished").String()
-	temporary  = kingpin.Flag("temporary", "Temporary RDP file to delete when finished").String()
+	temporary  = kingpin.Flag("temporary", "Temporary RDP file or directory to delete when finished").String()
 	executable = kingpin.Arg("executable", "Windows Remote Desktop client executable").Required().String()
 	arguments  = kingpin.Arg("arguments", "Arguments to Windows Remote Desktop client").Required().Strings()
 )
@@ -59,8 +59,8 @@ func main() {
 	cleanups := make([]Cleanup, 0, 2)
 	if *temporary != "" {
 		cleanups = append(cleanups, Cleanup{func() error {
-			return os.Remove(*temporary)
-		}, "Error deleting temporary file"})
+			return os.RemoveAll(*temporary)
+		}, "Error deleting temporary file or directory"})
 	}
 	if *credential != "" {
 		cleanups = append(cleanups, Cleanup{func() error {

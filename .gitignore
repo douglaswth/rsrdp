@@ -24,3 +24,4 @@ _testmain.go
 *.prof
 *.zip
 rsrdp
+rsrdp-run/rsrdp-run

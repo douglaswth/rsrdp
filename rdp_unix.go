@@ -24,6 +24,11 @@
 
 package main
 
+import (
+	"fmt"
+)
+
 func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
+	fmt.Println(rdpCreateFile(instance, private, index, username, true))
 	return nil
 }

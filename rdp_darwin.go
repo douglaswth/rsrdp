@@ -27,7 +27,7 @@ import (
 )
 
 func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
-	file, err := rdpCreateFile(instance, private, index, username)
+	file, err := rdpCreateFile(instance, private, index, username, false)
 	if err != nil {
 		return err
 	}

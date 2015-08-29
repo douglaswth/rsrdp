@@ -58,11 +58,11 @@ func rdpLaunchNative(instance *Instance, private bool, index int, arguments []st
 		args = append(args, "--credential", ipAddress)
 	}
 
-	file, err := rdpCreateFile(instance, private, index, username)
+	file, err := rdpCreateFile(instance, private, index, username, false)
 	if err != nil {
 		return err
 	}
-	args = append(args, "--temporary", file, "--", "mstsc", file)
+	args = append(args, "--temporary", filepath.Dir(file), "--", "mstsc", file)
 	args = append(args, arguments...)
 
 	executable, err := rdpFindRunExecutable()
