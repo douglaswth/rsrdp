@@ -24,8 +24,8 @@
 
 package win32
 
-// #include "Windows.h"
-// #include "WinCred.h"
+// #include "windows.h"
+// #include "wincred.h"
 import "C"
 
 import (
