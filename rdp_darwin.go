@@ -36,3 +36,7 @@ func rdpLaunchNative(instance *Instance, private bool, index int, arguments []st
 
 	return nil
 }
+
+func rdpFindClientNative() (string, error) {
+	return "", nil
+}

@@ -9,3 +9,6 @@ login:
       account: 67890
       host: us-4.rightscale.com
       refresh_token: fedcba0987654321febcba0987654321fedcba09
+client:
+  executable: rdesktop
+  options: [-f, -g, 800x600]

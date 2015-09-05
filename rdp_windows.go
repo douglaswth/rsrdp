@@ -32,18 +32,23 @@ import (
 )
 
 func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
-	ipAddress, err := instance.IpAddress(private, index)
+	client, options, err := rdpFindClient()
 	if err != nil {
 		return err
 	}
 
-	count := 3 + len(arguments)
+	count := 5 + len(options) + len(arguments)
 	if !prompt {
 		count += 2
 	}
 	args := make([]string, 0, count)
 
 	if !prompt {
+		ipAddress, err := instance.IpAddress(private, index)
+		if err != nil {
+			return err
+		}
+
 		credential := win32.CREDENTIAL{
 			Type:           win32.CRED_TYPE_GENERIC,
 			TargetName:     ipAddress,
@@ -63,7 +68,8 @@ func rdpLaunchNative(instance *Instance, private bool, index int, arguments []st
 	if err != nil {
 		return err
 	}
-	args = append(args, "--temporary", filepath.Dir(file), "--", "mstsc", file)
+	args = append(args, "--temporary", filepath.Dir(file), "--", client, file)
+	args = append(args, options...)
 	args = append(args, arguments...)
 
 	executable, err := rdpFindRunExecutable()
@@ -85,4 +91,12 @@ func rdpLaunchNative(instance *Instance, private bool, index int, arguments []st
 	}
 
 	return nil
+}
+
+func rdpFindClientNative() (string, error) {
+	_, err := exec.LookPath("mstsc")
+	if err != nil {
+		return "", fmt.Errorf("Error finding Remote Desktop client executable: %s", err)
+	}
+	return "mstsc", nil
 }

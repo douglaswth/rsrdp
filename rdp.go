@@ -29,10 +29,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/kardianos/osext"
 )
+
+var remmina = regexp.MustCompile("(?i)remmina")
 
 func rdpLaunch(instance *Instance, private bool, index int, arguments []string, prompt bool, username string, timeout, interval time.Duration) error {
 	err := instance.Wait(private, index, prompt, timeout, interval)
@@ -92,6 +95,26 @@ func rdpWriteParameter(writer io.Writer, key string, value interface{}) (int, er
 	default:
 		return fmt.Fprintf(writer, "%s:b:%s\r\n", key, value)
 	}
+}
+
+func rdpFindClient() (executable string, options []string, err error) {
+	options = config.GetStringSlice("client.options")
+
+	if config.IsSet("client.executable") {
+		executable = config.GetString("client.executable")
+		_, err = exec.LookPath(executable)
+		if err != nil {
+			return "", nil, fmt.Errorf("Error finding Remote Desktop client executable: %s", err)
+		}
+	} else {
+		executable, err = rdpFindClientNative()
+	}
+
+	return
+}
+
+func rdpIsRemmina(client string) bool {
+	return remmina.MatchString(filepath.Base(client))
 }
 
 func rdpFindRunExecutable() (string, error) {

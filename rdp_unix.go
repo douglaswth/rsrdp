@@ -26,9 +26,84 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 func rdpLaunchNative(instance *Instance, private bool, index int, arguments []string, prompt bool, username string) error {
-	fmt.Println(rdpCreateFile(instance, private, index, username, true))
+	client, options, err := rdpFindClient()
+	if err != nil {
+		return err
+	}
+
+	count := len(options) + len(arguments)
+	if rdpIsRemmina(client) {
+		count += 6
+	} else {
+		count += 5
+		if !prompt {
+			count += 2
+		}
+	}
+	args := make([]string, 0, count)
+
+	if rdpIsRemmina(client) {
+		file, err := rdpCreateFile(instance, private, index, username, !prompt)
+		if err != nil {
+			return err
+		}
+		args = append(args, "--temporary", filepath.Dir(file), "--", client, "-c", file)
+	} else {
+		ipAddress, err := instance.IpAddress(private, index)
+		if err != nil {
+			return err
+		}
+
+		args = append(args, "--", client, "-u", username, ipAddress)
+		if !prompt {
+			args = append(args, "-p", "-")
+		}
+	}
+
+	args = append(args, options...)
+	args = append(args, arguments...)
+
+	executable, err := rdpFindRunExecutable()
+	if err != nil {
+		return err
+	}
+
+	command := exec.Command(executable, args...)
+	if !prompt && !rdpIsRemmina(client) {
+		command.Stdin = strings.NewReader(instance.AdminPassword)
+	}
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+
+	err = command.Start()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(command, command.Stdin)
+
+	err = command.Process.Release()
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func rdpFindClientNative() (string, error) {
+	executables := []string{"remmina", "rdesktop"}
+	for _, executable := range executables {
+		_, err := exec.LookPath(executable)
+		if err == nil {
+			return executable, nil
+		}
+	}
+	return "", fmt.Errorf("Error finding Remote Desktop client executable: none of %q found in $PATH", executables)
 }
