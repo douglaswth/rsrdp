@@ -44,7 +44,7 @@ func readConfig(configFile, environment string) error {
 		return err
 	}
 
-	err = config.MarshalKey("login.environments", &config.environments)
+	err = config.UnmarshalKey("login.environments", &config.environments)
 	if err != nil {
 		return fmt.Errorf("%s: %s", configFile, err)
 	}
